@@ -11,7 +11,7 @@ bases = {'timCopy': 'appYLSUaPLATuDnYV'}
 
 from datetime import datetime
 def log(message):
-  print(f'\n{datetime.now().isoformat()} {message}')
+  print(f'\n{datetime.now().isoformat()} {message}', flush=True)
 
 log('Getting airtable records...')
 ctfg = api.table(bases['timCopy'], 'Listings').all()
