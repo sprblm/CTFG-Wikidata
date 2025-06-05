@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 from dotenv import load_dotenv
 
@@ -13,19 +14,33 @@ from datetime import datetime
 def log(message):
   print(f'\n{datetime.now().isoformat()} {message}', flush=True)
 
-log('Getting airtable records...')
-ctfg = api.table(bases['timCopy'], 'Listings').all()
+import pickle
 
-orgs = [x for x in ctfg if 'Organization' in x['fields'].get('Type', [])]
+def get_ctfg(from_cache=True):
+  log('Getting airtable records...')
+  cache_fp = 'cache/ctfg.pickle'
+  if from_cache:
+    with open(cache_fp, 'rb') as f:
+      items = pickle.load(f)
+  else:
+    ctfg = api.table(bases['timCopy'], 'Listings').all()
+    items = [x for x in ctfg if 'Organization' in x['fields'].get('Type', [])]
 
-print(f'\nFound {len(orgs)} orgs')
+    log('Serializing results to pickle')
+    with open(cache_fp, 'wb') as f:
+      pickle.dump(items, f)
 
-print(f'\nExample org project name: {orgs[0]['fields']['Project name']}')
+  print(f'\nFound {len(items)} items')
+  return items
+
+items = get_ctfg()
+
+print(f'\nExample project name: {items[0]['fields']['Project name']}')
 
 from collections import defaultdict
 
 types = defaultdict(int)
-for x in ctfg:
+for x in items:
     types[frozenset(x['fields'].get('Type', []))] += 1
 log('Item counts by type')
 
@@ -46,8 +61,21 @@ print(my_first_wikidata_item.get_json())
 
 from wikibaseintegrator import wbi_helpers
 
-log('Searching for orgs...')
-wiki_orgs = {x['id']: wbi_helpers.search_entities(x['fields']['Project name']) for x in orgs}
+def get_wiki_matches(items, from_cache=True):
+  log('Searching for wikibase matches...')
+  cache_fp = 'cache/wiki_orgs.pickle'
+  if from_cache:
+    with open(cache_fp, 'rb') as f:
+      wiki_matches = pickle.load(f)
+  else:
+    wiki_matches = {x['id']: wbi_helpers.search_entities(x['fields']['Project name']) for x in items}
+
+    log('Serializing results to pickle')
+    with open(cache_fp, 'wb') as f:
+      pickle.dump(wiki_orgs, f)
+  return wiki_matches
+
+wiki_orgs = get_wiki_matches(orgs)
 
 count_of_counts = defaultdict(int)
 for x in wiki_orgs.values():
@@ -59,7 +87,4 @@ sorted(count_of_counts.items())
 log('Wikibase match count histogram:')
 sum(count_of_counts.values())
 
-log('Serializing results to pickle')
-import pickle
-with open('wiki_orgs', 'wb') as f:
-    pickle.dump(wiki_orgs, f)
+
