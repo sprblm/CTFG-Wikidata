@@ -16,6 +16,8 @@ def log(message):
 
 import pickle
 
+ctfg = api.table(bases['timCopy'], 'Listings')
+
 def get_ctfg(from_cache=True):
   log('Getting airtable records...')
   cache_fp = 'cache/ctfg.pickle'
@@ -23,8 +25,7 @@ def get_ctfg(from_cache=True):
     with open(cache_fp, 'rb') as f:
       items = pickle.load(f)
   else:
-    ctfg = api.table(bases['timCopy'], 'Listings').all()
-    items = [x for x in ctfg if 'Organization' in x['fields'].get('Type', [])]
+    items = [x for x in ctfg.all() if 'Organization' in x['fields'].get('Type', [])]
 
     log('Serializing results to pickle')
     with open(cache_fp, 'wb') as f:
