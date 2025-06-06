@@ -1,0 +1,2 @@
+# This directory is for caching DB results in pickles (mostly for dev)
+*.pickle
