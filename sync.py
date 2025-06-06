@@ -88,4 +88,11 @@ sorted(count_of_counts.items())
 log('Wikibase match count histogram:')
 sum(count_of_counts.values())
 
-
+update_matches_message = 'Udating CTFG with matching wikibase IDs...'
+if False:
+  log(update_matches_message)
+  import json
+  for (key, matches) in wiki_matches.items():
+    ctfg.batch_update([{'id': key, 'fields': {'Wikibase ID suggestions': json.dumps(matches)}}])
+else:
+   log(f'Skipping: {update_matches_message}')
