@@ -72,13 +72,13 @@ def get_wiki_matches(items, from_cache=True):
 
     log('Serializing results to pickle')
     with open(cache_fp, 'wb') as f:
-      pickle.dump(wiki_orgs, f)
+      pickle.dump(wiki_matches, f)
   return wiki_matches
 
-wiki_orgs = get_wiki_matches(orgs)
+wiki_matches = get_wiki_matches(items)
 
 count_of_counts = defaultdict(int)
-for x in wiki_orgs.values():
+for x in wiki_matches.values():
     count_of_counts[len(x)] += 1
 
 log('Wikibase matches per CTFG item:')
