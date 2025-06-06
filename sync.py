@@ -31,12 +31,12 @@ def get_ctfg(from_cache=True):
     with open(cache_fp, 'wb') as f:
       pickle.dump(items, f)
 
-  print(f'\nFound {len(items)} items')
+  log(f'Found {len(items)} items')
   return items
 
 items = get_ctfg()
 
-print(f'\nExample project name: {items[0]['fields']['Project name']}')
+log(f'Example project name: {items[0]['fields']['Project name']}')
 
 from collections import defaultdict
 
@@ -54,16 +54,17 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 wbi_config['USER_AGENT'] = 'AutomationDev/0.1 (https://www.wikidata.org/wiki/User:TECCLESTON-TECH'
 
 wbi = WikibaseIntegrator()
-log('Testing fetch of wikibase "human" record as json:')
-my_first_wikidata_item = wbi.item.get(entity_id='Q5')
+if False:
+  log('Testing fetch of wikibase "human" record as json:')
+  my_first_wikidata_item = wbi.item.get(entity_id='Q5')
 
-# to check successful installation and retrieval of the data, you can print the json representation of the item
-print(my_first_wikidata_item.get_json())
+  # to check successful installation and retrieval of the data, you can print the json representation of the item
+  print(my_first_wikidata_item.get_json())
 
 from wikibaseintegrator import wbi_helpers
 
 def get_wiki_matches(items, from_cache=True):
-  log('Searching for wikibase matches...')
+  log(f'Searching for wikibase matches for {len(items)} items...')
   cache_fp = 'cache/wiki_orgs.pickle'
   if from_cache:
     with open(cache_fp, 'rb') as f:
@@ -82,13 +83,16 @@ count_of_counts = defaultdict(int)
 for x in wiki_matches.values():
     count_of_counts[len(x)] += 1
 
-log('Wikibase matches per CTFG item:')
-sorted(count_of_counts.items())
+wiki_total_matches = sum(k * v for k, v in count_of_counts.items())
+matched_item_count = sum(v for k, v in count_of_counts.items() if k != 0)
+log(f'{wiki_total_matches} Wiki Matches across {matched_item_count} items.')
 
 log('Wikibase match count histogram:')
-sum(count_of_counts.values())
+for bucket, count in sorted(count_of_counts.items()):
+  print(bucket, count)
 
-update_matches_message = 'Udating CTFG with matching wikibase IDs...'
+
+update_matches_message = 'Updating CTFG with matching wikibase IDs...'
 if False:
   log(update_matches_message)
   import json
