@@ -63,14 +63,15 @@ if False:
 
 from wikibaseintegrator import wbi_helpers
 
-def get_wiki_matches(items, from_cache=True):
-  log(f'Searching for wikibase matches for {len(items)} items...')
+def get_wiki_matches(items, from_cache=False):
+  matchable_items = [x for x in items if 'Project name' in x['fields']]
+  log(f'Searching for wikibase matches for {len(matchable_items)} matchable_items...')
   cache_fp = 'cache/wiki_orgs.pickle'
   if from_cache:
     with open(cache_fp, 'rb') as f:
       wiki_matches = pickle.load(f)
   else:
-    wiki_matches = {x['id']: wbi_helpers.search_entities(x['fields']['Project name']) for x in items}
+    wiki_matches = {x['id']: wbi_helpers.search_entities(x['fields']['Project name']) for x in matchable_items}
 
     log('Serializing results to pickle')
     with open(cache_fp, 'wb') as f:
