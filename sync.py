@@ -77,7 +77,8 @@ def get_wiki_matches(items, from_cache=True):
       pickle.dump(wiki_matches, f)
   return wiki_matches
 
-wiki_matches = get_wiki_matches(items)
+unmatched_items = [x for x in items if 'Wikidata ID (Number)' not in x['fields']]
+wiki_matches = get_wiki_matches(unmatched_items)
 
 count_of_counts = defaultdict(int)
 for x in wiki_matches.values():
