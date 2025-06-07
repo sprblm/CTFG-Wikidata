@@ -61,25 +61,31 @@ if False:
   # to check successful installation and retrieval of the data, you can print the json representation of the item
   print(my_first_wikidata_item.get_json())
 
-from wikibaseintegrator import wbi_helpers
+from wikibaseintegrator.wbi_helpers import search_entities
 
-def get_wiki_matches(items, from_cache=False):
+from random import sample
+def get_wiki_matches(items, max_attempts=None, from_cache=False):
   matchable_items = [x for x in items if 'Project name' in x['fields']]
-  log(f'Searching for wikibase matches for {len(matchable_items)} matchable_items...')
+  attempting_items = sample(matchable_items, max_attempts) if max_attempts else matchable_items
+  log(f'Searching for wikibase matches for {len(attempting_items)} {'random' if max_attempts else 'matchable'} items...')
   cache_fp = 'cache/wiki_orgs.pickle'
   if from_cache:
     with open(cache_fp, 'rb') as f:
       wiki_matches = pickle.load(f)
   else:
-    wiki_matches = {x['id']: wbi_helpers.search_entities(x['fields']['Project name']) for x in matchable_items}
+    wiki_matches = {}
+    for x in attempting_items:
+      wiki_matches[x['id']] = search_entities(x['fields']['Project name'])
 
-    log('Serializing results to pickle')
-    with open(cache_fp, 'wb') as f:
-      pickle.dump(wiki_matches, f)
+    if not max_attempts:
+      log('Serializing results to pickle')
+      with open(cache_fp, 'wb') as f:
+        pickle.dump(wiki_matches, f)
+
   return wiki_matches
 
 unmatched_items = [x for x in items if 'Wikidata ID (Number)' not in x['fields']]
-wiki_matches = get_wiki_matches(unmatched_items)
+wiki_matches = get_wiki_matches(unmatched_items, max_attempts=50)
 
 count_of_counts = defaultdict(int)
 for x in wiki_matches.values():
