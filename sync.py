@@ -115,8 +115,7 @@ for bucket, count in sorted(count_of_counts.items()):
 update_matches_message = 'Updating CTFG with matching wikibase IDs...'
 if False:
   log(update_matches_message)
-  for (key, matches) in wiki_matches.items():
-    ctfg.batch_update([{'id': key, 'fields': {'Wikidata ID suggestions': '\n'.join(matches)}}])
+  ctfg.batch_update([{'id': key, 'fields': {'Wikidata ID suggestions': '\n'.join(matches)}} for (key, matches) in wiki_matches.items()])
 else:
    log(f'Skipping: {update_matches_message}')
 
