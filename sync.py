@@ -95,13 +95,8 @@ log('Wikibase match count histogram:')
 for bucket, count in sorted(count_of_counts.items()):
   print(bucket, count)
 
-
-update_matches_message = 'Updating CTFG with matching wikibase IDs...'
-if True:
-  log(update_matches_message)
-  ctfg.batch_update([{'id': key, 'fields': {'Wikidata ID suggestions': '\n'.join(matches)}} for (key, matches) in wiki_matches.items()])
-else:
-   log(f'Skipping: {update_matches_message}')
+log('Updating CTFG with matching wikibase IDs...')
+ctfg.batch_update([{'id': key, 'fields': {'Wikidata ID suggestions': '\n'.join(matches)}} for (key, matches) in wiki_matches.items()])
 
 log('Getting wikidata json for confirmed matches...')
 matched_wikis = {x['id']: wbi.item.get('Q' + str(x['fields']['Wikidata ID (Number)'])).get_json() for x in sample(matched_items, 50)}
