@@ -81,16 +81,6 @@ def get_wiki_matches(items, max_attempts=None, from_cache=False):
 matched_items = [x for x in items if 'Wikidata ID (Number)' in x['fields']]
 unmatched_items = [x for x in items if 'Wikidata ID (Number)' not in x['fields']]
 
-log('Getting wikidata json for confirmed matches...')
-matched_wikis = {x['id']: wbi.item.get('Q' + str(x['fields']['Wikidata ID (Number)'])).get_json() for x in sample(matched_items, 50)}
-urls = {k: v['claims']['P856'] for k, v in matched_wikis.items() if 'P856' in v['claims']}
-from pprint import pprint
-updates = [{'id': k, 'fields': {'Wikidata Official Page Suggestions': '\n'.join([x['mainsnak']['datavalue']['value'] for x in v])}} for k, v in urls.items()]
-pprint(updates)
-log(f'Urls found for {len(urls)} items.')
-
-log('Updating URLs in matched items')
-ctfg.batch_update(updates)
 wiki_matches = get_wiki_matches(unmatched_items, max_attempts=50)
 
 count_of_counts = defaultdict(int)
@@ -113,3 +103,13 @@ if True:
 else:
    log(f'Skipping: {update_matches_message}')
 
+log('Getting wikidata json for confirmed matches...')
+matched_wikis = {x['id']: wbi.item.get('Q' + str(x['fields']['Wikidata ID (Number)'])).get_json() for x in sample(matched_items, 50)}
+urls = {k: v['claims']['P856'] for k, v in matched_wikis.items() if 'P856' in v['claims']}
+from pprint import pprint
+updates = [{'id': k, 'fields': {'Wikidata Official Page Suggestions': '\n'.join([x['mainsnak']['datavalue']['value'] for x in v])}} for k, v in urls.items()]
+pprint(updates)
+log(f'Urls found for {len(urls)} items.')
+
+log('Updating URLs in matched items')
+ctfg.batch_update(updates)
