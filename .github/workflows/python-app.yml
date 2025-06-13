@@ -32,6 +32,6 @@ jobs:
         poetry install
     - name: Run
       run: |
-        poetry run python -m sync.py
+        poetry run python -m sync
       env:
         AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
