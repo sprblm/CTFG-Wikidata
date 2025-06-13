@@ -18,7 +18,7 @@ import pickle
 
 ctfg = api.table(bases['timCopy'], 'Listings')
 
-def get_ctfg(from_cache=True):
+def get_ctfg(from_cache=False):
   log('Getting airtable records...')
   cache_fp = 'cache/ctfg.pickle'
   if from_cache:
