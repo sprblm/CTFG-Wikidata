@@ -54,12 +54,6 @@ from wikibaseintegrator.wbi_config import config as wbi_config
 wbi_config['USER_AGENT'] = 'AutomationDev/0.1 (https://www.wikidata.org/wiki/User:TECCLESTON-TECH'
 
 wbi = WikibaseIntegrator()
-if False:
-  log('Testing fetch of wikibase "human" record as json:')
-  my_first_wikidata_item = wbi.item.get(entity_id='Q5')
-
-  # to check successful installation and retrieval of the data, you can print the json representation of the item
-  print(my_first_wikidata_item.get_json())
 
 from wikibaseintegrator.wbi_helpers import search_entities
 
