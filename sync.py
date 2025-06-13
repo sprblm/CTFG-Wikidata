@@ -88,7 +88,7 @@ matched_items = [x for x in items if 'Wikidata ID (Number)' in x['fields']]
 unmatched_items = [x for x in items if 'Wikidata ID (Number)' not in x['fields']]
 
 log('Getting wikidata json for confirmed matches...')
-matched_wikis = {x['id']: wbi.item.get('Q' + str(x['fields']['Wikidata ID (Number)'])).get_json() for x in matched_items[:50]}
+matched_wikis = {x['id']: wbi.item.get('Q' + str(x['fields']['Wikidata ID (Number)'])).get_json() for x in sample(matched_items, 50)}
 urls = {k: v['claims']['P856'] for k, v in matched_wikis.items() if 'P856' in v['claims']}
 from pprint import pprint
 updates = [{'id': k, 'fields': {'Wikidata Official Page Suggestions': '\n'.join([x['mainsnak']['datavalue']['value'] for x in v])}} for k, v in urls.items()]
