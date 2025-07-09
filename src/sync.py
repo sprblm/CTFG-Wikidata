@@ -8,7 +8,10 @@ from pyairtable import Api
 import os
 
 api = Api(os.environ['AIRTABLE_API_KEY'])
-bases = {'timCopy': 'appYLSUaPLATuDnYV'}
+bases = {
+    'timCopy': 'appYLSUaPLATuDnYV',
+    'dev': 'appWfbJkmPgyX0nM4'
+  }
 
 from datetime import datetime
 def log(message):
@@ -16,7 +19,7 @@ def log(message):
 
 import pickle
 
-ctfg = api.table(bases['timCopy'], 'Listings')
+ctfg = api.table(bases['dev'], 'Listings')
 
 def get_ctfg(from_cache=False):
   log('Getting airtable records...')
