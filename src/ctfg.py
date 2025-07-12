@@ -13,7 +13,7 @@ bases = {
     "snapshot": "appFHP1OYJg69gvpK",
 }
 
-base = api.table(bases["dev"], "Listings")
+table = api.table(bases["dev"], Listing.Meta.table_name)
 
 
 def get_records(from_cache=True):
@@ -23,7 +23,7 @@ def get_records(from_cache=True):
         with open(cache_fp, "rb") as f:
             items = pickle.load(f)
     else:
-        items = [x for x in base.all()]
+        items = [x for x in table.all()]
 
         log("Serializing results to pickle")
         with open(cache_fp, "wb") as f:
@@ -59,7 +59,7 @@ def upsert_matches(wiki_matches):
         {"id": key, "fields": {"Wikidata ID suggestions": "\n".join(matches)}}
         for (key, matches) in wiki_matches.items()
     ]
-    base.batch_update(updates)
+    table.batch_update(updates)
     return updates
 
 
@@ -79,5 +79,5 @@ def update_urls(urls):
     pprint(updates)
 
     log("Updating URLs in matched items")
-    base.batch_update(updates)
+    table.batch_update(updates)
     return updates
