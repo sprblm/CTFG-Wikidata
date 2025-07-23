@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 from util import *
 from pyairtable import Api
 import os
@@ -14,14 +14,15 @@ bases = {
     "snapshot": "appFHP1OYJg69gvpK",
 }
 base_id = bases["dev"]
+base = api.base(base_id)
 
 from pyairtable.orm import Model, fields as F
 
 
 class WikidataProperty(Model):
-    pid_num: int = F.IntegerField("PID")
-    label: str = F.SingleLineTextField("Label")
-    description: str = F.MultilineTextField("Description")
+    pid_num = F.IntegerField("PID")
+    label = F.SingleLineTextField("Label")
+    description = F.MultilineTextField("Description")
     statements = F.LinkField("Statements", "WikidataStatement")
 
     class Meta:
@@ -31,9 +32,9 @@ class WikidataProperty(Model):
 
 
 class WikidataItem(Model):
-    qid_num: int = F.IntegerField("QID")
-    label: str = F.SingleLineTextField("Label")
-    description: str = F.MultilineTextField("Description")
+    qid_num = F.IntegerField("QID")
+    label = F.SingleLineTextField("Label")
+    description = F.MultilineTextField("Description")
     statements = F.LinkField("Statements", "WikidataStatement")
     listings = F.LinkField("Listings", "Listing")
 
@@ -44,11 +45,11 @@ class WikidataItem(Model):
 
 
 class WikidataStatement(Model):
-    qid_num: int = F.IntegerField("QID")
-    label: str = F.SingleLineTextField("Label")
-    description: str = F.MultilineTextField("Description")
-    property = F.LinkField("Wikidata Property", WikidataProperty)
-    item = F.LinkField("Wikidata Item", WikidataItem)
+    qid_num = F.IntegerField("QID")
+    label = F.SingleLineTextField("Label")
+    description = F.MultilineTextField("Description")
+    property = F.SingleLinkField("Wikidata Property", WikidataProperty)
+    item = F.SingleLinkField("Wikidata Item", WikidataItem)
 
     class Meta:
         api_key = api_key
@@ -57,46 +58,74 @@ class WikidataStatement(Model):
 
 
 class Listing(Model):
-    name: Optional[str] = F.SingleLineTextField("Project name")
+    name = F.SingleLineTextField("Project name")
+    wikidata_item = F.SingleLinkField("wikidata Item", WikidataItem)
     wikidata_suggestions = F.LinkField("Wikidata Item Suggestions", WikidataItem)
+    type = F.MultipleSelectField("Type")
 
     class Meta:
         api_key = api_key
         base_id = base_id
         table_name = "Listings"
-        id = "tblELFP9tGX07UZDo"
 
 
-table = Listing.meta.table
+listings = Listing.meta.table
+log(listings)
+log(listings.first())
+log(listings.id)
 
 
-def deploy_fields():
+def deploy_fields() -> None:
     log("Deploying missing fields (as necessary)")
-    fields = {
-        WikidataItem.listings.field_name: {
-            "field_type": "multipleRecordLinks",
-            "description": "CTFG listings that are suspected to match this wikidata item",
-            "options": {
-                "linkedTableId": Listing.meta.table.id,
-                # "isReversed": True,
-                # "prefersSingleRecordLink": True,
+    models: dict[Any, dict[Any, dict[str, Any]]] = {
+        WikidataItem: {
+            WikidataItem.qid_num: {
+                "field_type": "number",
+            },
+            WikidataItem.listings: {
+                "field_type": "multipleRecordLinks",
+                "description": "CTFG listings that are suspected to match this wikidata item",
+                "options": {
+                    "linkedTableId": Listing.meta.table.id,
+                    # "isReversed": True,
+                    # "prefersSingleRecordLink": True,
+                },
             },
         },
+        Listing: {
+            Listing.wikidata_item: {
+                "field_type": "multipleRecordLinks",
+                "description": "The matching Wikidata item selected by CTFG (staff, or maybe airtable automation)",
+                "options": {
+                    "linkedTableId": WikidataItem.meta.table.id,
+                    # "isReversed": True,
+                    # "prefersSingleRecordLink": True,
+                },
+            }
+        },
     }
-    wikiItemsTable = WikidataItem.meta.table
-    for name, params in fields.items():
-        if name not in [field.name for field in wikiItemsTable.schema().fields]:
-            wikiItemsTable.create_field(name, field_type=params['field_type'], description=params['description'], options=params['options'])
+    for model, fields in models.items():
+        log(f'Checking Model: "{model.meta.table.name}"')
+        current_field_names: list[str] = [f.name for f in model.meta.table.schema().fields]
+        for field, params in fields.items():
+            name: str = field.field_name
+            if name not in current_field_names:
+                log(f'attempting to deploy "{name}"')
+                base.table(model.meta.table.id).create_field(
+                    name,
+                    **params["field_type"],
+                )
+    log("Finished deploying fields")
 
 
-def get_records(from_cache=True):
+def get_records(from_cache=True) -> list[Listing]:
     log("Getting airtable records...")
     cache_fp = "cache/ctfg.pickle"
     if from_cache:
         with open(cache_fp, "rb") as f:
-            items = pickle.load(f)
+            items: list[Listing] = pickle.load(f)
     else:
-        items = [x for x in table.all()]
+        items = Listing.all(memoize=True)
 
         log("Serializing results to pickle")
         with open(cache_fp, "wb") as f:
@@ -104,36 +133,52 @@ def get_records(from_cache=True):
 
     log(f"Found {len(items)} items")
 
-    log(f"Example project name: {items[0]['fields']['Project name']}")
+    log(f"Example project name: {items[0].name}")
 
     return items
 
 
-def summarize_types(items):
-    types = defaultdict(int)
+def summarize_types(items: list[Listing]):
+    types: defaultdict[frozenset[str], int] = defaultdict(int)
     for x in items:
-        types[frozenset(x["fields"].get("Type", []))] += 1
-    log("Item counts by type")
+        types[frozenset(x.type)] += 1
 
-    for x in sorted(types.items(), key=lambda x: -x[1]):
-        print(x[1], list(x[0]))
+    log("Item counts by type")
+    for type, count in sorted(types.items(), key=lambda x: -x[1]):
+        print(count, list(type))
     return types
 
 
-def partition_matched(items):
-    matched_items = [x for x in items if "Wikidata ID (Number)" in x["fields"]]
-    unmatched_items = [x for x in items if "Wikidata ID (Number)" not in x["fields"]]
+def partition_matched(items: list[Listing]) -> tuple[list[Listing], list[Listing]]:
+    matched_items = [x for x in items if x.wikidata_item]
+    unmatched_items = [x for x in items if not x.wikidata_item]
     return (matched_items, unmatched_items)
 
 
-def upsert_matches(wiki_matches):
+from itertools import batched
+
+
+def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
     log("Updating CTFG with matching wikibase IDs...")
-    updates = [
-        {"id": key, "fields": {"Wikidata ID suggestions": "\n".join(matches)}}
-        for (key, matches) in wiki_matches.items()
-    ]
-    table.batch_update(updates)
-    return updates
+    excluded_keys = ["match", "aliases"]
+    with_wiki_items = {
+        x: [
+            WikidataItem(**{k: v for k, v in m.items() if k not in excluded_keys})
+            for m in matches
+        ]
+        for x, matches in wiki_matches.items()
+        if matches
+    }
+    wiki_items = [x.to_record() for y in with_wiki_items.values() for x in y]
+    log("Example items")
+    for batch in batched(wiki_items, 1):
+        pprint(batch)
+        # WikidataItem.batch_save(batch)
+        base.table(WikidataItem.meta.table.id).batch_upsert(list(batch), ["QID"])
+
+    for x, matches in with_wiki_items.items():
+        x.wikidata_suggestions = matches
+    listings.batch_upsert([dict(x.to_record()) for x in with_wiki_items.keys()], ["id"])
 
 
 def update_urls(urls):
@@ -152,5 +197,5 @@ def update_urls(urls):
     pprint(updates)
 
     log("Updating URLs in matched items")
-    table.batch_update(updates)
+    listings.batch_update(updates)
     return updates
