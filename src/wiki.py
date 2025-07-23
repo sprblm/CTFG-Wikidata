@@ -3,6 +3,7 @@ from util import *
 import pickle
 from wikibaseintegrator.wbi_helpers import search_entities
 from random import sample
+import ctfg
 
 
 from wikibaseintegrator import WikibaseIntegrator
@@ -13,8 +14,8 @@ wbi_config["USER_AGENT"] = (
 )
 
 
-def get_matches(items, max_attempts=None, from_cache=False):
-    matchable_items = [x for x in items if "Project name" in x["fields"]]
+def get_matches(items: list[ctfg.Listing], max_attempts=None, from_cache=False):
+    matchable_items = [x for x in items if x.name]
     attempting_items = (
         sample(matchable_items, max_attempts) if max_attempts else matchable_items
     )
@@ -28,7 +29,7 @@ def get_matches(items, max_attempts=None, from_cache=False):
     else:
         wiki_matches = {}
         for x in attempting_items:
-            wiki_matches[x["id"]] = search_entities(x["fields"]["Project name"])
+            wiki_matches[x.id] = search_entities(x.name)
 
         if not max_attempts:
             log("Serializing results to pickle")

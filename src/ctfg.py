@@ -1,3 +1,4 @@
+from typing import Optional
 from util import *
 from pyairtable import Api
 import os
@@ -5,15 +6,87 @@ import pickle
 from collections import defaultdict
 from pprint import pprint
 
-
-api = Api(os.environ["AIRTABLE_API_KEY"])
+api_key = os.environ["AIRTABLE_API_KEY"]
+api = Api(api_key)
 bases = {
     "timCopy": "appYLSUaPLATuDnYV",
     "dev": "appWfbJkmPgyX0nM4",
     "snapshot": "appFHP1OYJg69gvpK",
 }
+base_id = bases["dev"]
 
-table = api.table(bases["dev"], Listing.Meta.table_name)
+from pyairtable.orm import Model, fields as F
+
+
+class WikidataProperty(Model):
+    pid_num: int = F.IntegerField("PID")
+    label: str = F.SingleLineTextField("Label")
+    description: str = F.MultilineTextField("Description")
+    statements = F.LinkField("Statements", "WikidataStatement")
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Wikidata Properties"
+
+
+class WikidataItem(Model):
+    qid_num: int = F.IntegerField("QID")
+    label: str = F.SingleLineTextField("Label")
+    description: str = F.MultilineTextField("Description")
+    statements = F.LinkField("Statements", "WikidataStatement")
+    listings = F.LinkField("Listings", "Listing")
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Wikidata Items"
+
+
+class WikidataStatement(Model):
+    qid_num: int = F.IntegerField("QID")
+    label: str = F.SingleLineTextField("Label")
+    description: str = F.MultilineTextField("Description")
+    property = F.LinkField("Wikidata Property", WikidataProperty)
+    item = F.LinkField("Wikidata Item", WikidataItem)
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Wikidata Statements"
+
+
+class Listing(Model):
+    name: Optional[str] = F.SingleLineTextField("Project name")
+    wikidata_suggestions = F.LinkField("Wikidata Item Suggestions", WikidataItem)
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Listings"
+        id = "tblELFP9tGX07UZDo"
+
+
+table = Listing.meta.table
+
+
+def deploy_fields():
+    log("Deploying missing fields (as necessary)")
+    fields = {
+        WikidataItem.listings.field_name: {
+            "field_type": "multipleRecordLinks",
+            "description": "CTFG listings that are suspected to match this wikidata item",
+            "options": {
+                "linkedTableId": Listing.meta.table.id,
+                # "isReversed": True,
+                # "prefersSingleRecordLink": True,
+            },
+        },
+    }
+    wikiItemsTable = WikidataItem.meta.table
+    for name, params in fields.items():
+        if name not in [field.name for field in wikiItemsTable.schema().fields]:
+            wikiItemsTable.create_field(name, field_type=params['field_type'], description=params['description'], options=params['options'])
 
 
 def get_records(from_cache=True):

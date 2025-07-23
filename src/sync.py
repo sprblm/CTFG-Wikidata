@@ -4,6 +4,7 @@
 import ctfg
 import wiki
 
+ctfg.deploy_fields()
 items = ctfg.get_records()
 types = ctfg.summarize_types(items)
 (matched_items, unmatched_items) = ctfg.partition_matched(items)
