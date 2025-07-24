@@ -72,7 +72,7 @@ class WikidataStatement(Model):
 
 class Listing(Model):
     name = F.SingleLineTextField("Project name")
-    wikidata_item = F.SingleLinkField("wikidata Item", WikidataItem)
+    wikidata_item = F.SingleLinkField("Wikidata Item", WikidataItem)
     wikidata_suggestions = F.LinkField("Wikidata Item Suggestions", WikidataItem)
     type = F.MultipleSelectField("Type")
 
@@ -115,9 +115,7 @@ def deploy_fields() -> None:
                     # "isReversed": True,
                     # "prefersSingleRecordLink": True,
                 },
-            }
-        },
-        Listing: {
+            },
             Listing.wikidata_suggestions: {
                 "field_type": "multipleRecordLinks",
                 "description": "Wikidata's suggested matches for the project name",
