@@ -38,6 +38,7 @@ class WikidataItem(Model):
     description = F.MultilineTextField("Description")
     statements = F.LinkField("Statements", "WikidataStatement")
     listings = F.LinkField("Listings", "Listing")
+    url = F.UrlField("Wikidata Page", readonly=True)
 
     class Meta:
         api_key = api_key
@@ -105,6 +106,9 @@ def deploy_fields() -> None:
                     # "prefersSingleRecordLink": True,
                 },
             },
+            WikidataItem.url: {
+                "field_type": "singleLineText",
+            },
         },
         Listing: {
             Listing.wikidata_item: {
@@ -124,7 +128,7 @@ def deploy_fields() -> None:
                     # "isReversed": True,
                     # "prefersSingleRecordLink": False,
                 },
-            }
+            },
         },
     }
     for model, fields in models.items():
