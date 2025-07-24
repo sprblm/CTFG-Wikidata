@@ -1,4 +1,6 @@
 from collections import defaultdict
+from pprint import pprint
+from typing import Any
 from util import *
 import pickle
 from wikibaseintegrator.wbi_helpers import search_entities
@@ -14,7 +16,9 @@ wbi_config["USER_AGENT"] = (
 )
 
 
-def get_matches(items: list[ctfg.Listing], max_attempts=None, from_cache=False):
+def get_matches(
+    items: list[ctfg.Listing], max_attempts=None, from_cache=False
+) -> dict[ctfg.Listing, list[dict[str, Any]]]:
     matchable_items = [x for x in items if x.name]
     attempting_items = (
         sample(matchable_items, max_attempts) if max_attempts else matchable_items
@@ -29,7 +33,8 @@ def get_matches(items: list[ctfg.Listing], max_attempts=None, from_cache=False):
     else:
         wiki_matches = {}
         for x in attempting_items:
-            wiki_matches[x.id] = search_entities(x.name)
+            raw_matches = search_entities(x.name, "en", dict_result=True)
+            wiki_matches[x] = raw_matches
 
         if not max_attempts:
             log("Serializing results to pickle")
@@ -54,6 +59,9 @@ def summarize_matches(wiki_matches):
     log("Wikibase match count histogram:")
     for bucket, count in sorted(count_of_counts.items()):
         print(bucket, count)
+    
+    log("Example match:")
+    pprint([x for y in wiki_matches.values() for x in y][0])
     return count_of_counts
 
 
@@ -63,7 +71,7 @@ def get_jsons(matched_items):
 
     log("Getting wikidata json for confirmed matches...")
     matched_wikis = {
-        x["id"]: wbi.item.get("Q" + str(x["fields"]["Wikidata ID (Number)"])).get_json()
+        x["QID"]: wbi.item.get("Q" + str(x["fields"]["Wikidata ID (Number)"])).get_json()
         for x in sample(matched_items, min(5, len(matched_items)))
     }
     return matched_wikis

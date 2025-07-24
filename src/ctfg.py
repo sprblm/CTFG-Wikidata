@@ -29,10 +29,11 @@ class WikidataProperty(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Properties"
+        memoize = True
 
 
 class WikidataItem(Model):
-    qid_num = F.IntegerField("QID")
+    qid = F.SingleLineTextField("QID")
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
     statements = F.LinkField("Statements", "WikidataStatement")
@@ -42,6 +43,17 @@ class WikidataItem(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Items"
+        memoize = True
+
+    @staticmethod
+    def from_wiki_match(m: dict, keep_unknowns: bool = False):
+        keyMapping = {
+            "qid": "id",
+            "label": "label",
+            "description": "description",
+        }
+        mappable = {k: m[v] for k, v in keyMapping.items()}
+        return WikidataItem(**mappable)
 
 
 class WikidataStatement(Model):
@@ -55,6 +67,7 @@ class WikidataStatement(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Statements"
+        memoize = True
 
 
 class Listing(Model):
@@ -67,6 +80,7 @@ class Listing(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Listings"
+        memoize = True
 
 
 listings = Listing.meta.table
@@ -79,8 +93,8 @@ def deploy_fields() -> None:
     log("Deploying missing fields (as necessary)")
     models: dict[Any, dict[Any, dict[str, Any]]] = {
         WikidataItem: {
-            WikidataItem.qid_num: {
-                "field_type": "number",
+            WikidataItem.qid: {
+                "field_type": "singleLineText",
             },
             WikidataItem.listings: {
                 "field_type": "multipleRecordLinks",
@@ -103,17 +117,30 @@ def deploy_fields() -> None:
                 },
             }
         },
+        Listing: {
+            Listing.wikidata_suggestions: {
+                "field_type": "multipleRecordLinks",
+                "description": "Wikidata's suggested matches for the project name",
+                "options": {
+                    "linkedTableId": WikidataItem.meta.table.id,
+                    # "isReversed": True,
+                    # "prefersSingleRecordLink": False,
+                },
+            }
+        },
     }
     for model, fields in models.items():
         log(f'Checking Model: "{model.meta.table.name}"')
-        current_field_names: list[str] = [f.name for f in model.meta.table.schema().fields]
+        current_field_names: list[str] = [
+            f.name for f in model.meta.table.schema().fields
+        ]
         for field, params in fields.items():
             name: str = field.field_name
             if name not in current_field_names:
                 log(f'attempting to deploy "{name}"')
                 base.table(model.meta.table.id).create_field(
                     name,
-                    **params["field_type"],
+                    **params,
                 )
     log("Finished deploying fields")
 
@@ -160,25 +187,20 @@ from itertools import batched
 
 def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
     log("Updating CTFG with matching wikibase IDs...")
-    excluded_keys = ["match", "aliases"]
     with_wiki_items = {
-        x: [
-            WikidataItem(**{k: v for k, v in m.items() if k not in excluded_keys})
-            for m in matches
-        ]
+        x: [WikidataItem.from_wiki_match(m) for m in matches]
         for x, matches in wiki_matches.items()
         if matches
     }
-    wiki_items = [x.to_record() for y in with_wiki_items.values() for x in y]
-    log("Example items")
-    for batch in batched(wiki_items, 1):
-        pprint(batch)
-        # WikidataItem.batch_save(batch)
-        base.table(WikidataItem.meta.table.id).batch_upsert(list(batch), ["QID"])
+    wiki_items = list(set([x for y in with_wiki_items.values() for x in y]))
+
+    log("Example item")
+    pprint(wiki_items[0].to_record())
+    WikidataItem.batch_save(wiki_items)
 
     for x, matches in with_wiki_items.items():
         x.wikidata_suggestions = matches
-    listings.batch_upsert([dict(x.to_record()) for x in with_wiki_items.keys()], ["id"])
+    Listing.batch_save(list(with_wiki_items.keys()))
 
 
 def update_urls(urls):
