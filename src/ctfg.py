@@ -23,7 +23,7 @@ class WikidataProperty(Model):
     pid_num = F.IntegerField("PID")
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
-    statements = F.LinkField("Statements", "WikidataStatement")
+    statements = F.LinkField("Statements", "Wikidata Statements")
 
     class Meta:
         api_key = api_key
@@ -36,7 +36,7 @@ class WikidataItem(Model):
     qid = F.SingleLineTextField("QID")
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
-    statements = F.LinkField("Statements", "WikidataStatement")
+    statements = F.LinkField("Statements", "Wikidata Statements")
     listings = F.LinkField("Listings", "Listing")
     url = F.UrlField("Wikidata Page", readonly=True)
 
