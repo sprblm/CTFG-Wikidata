@@ -59,7 +59,7 @@ def summarize_matches(wiki_matches):
     log("Wikibase match count histogram:")
     for bucket, count in sorted(count_of_counts.items()):
         print(bucket, count)
-    
+
     log("Example match:")
     pprint([x for y in wiki_matches.values() for x in y][0])
     return count_of_counts
