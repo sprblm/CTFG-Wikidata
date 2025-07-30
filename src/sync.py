@@ -16,4 +16,3 @@ matched_wikis = wiki.get_jsons(matched_items)
 urls = wiki.get_urls(matched_wikis)
 
 match_updates = ctfg.upsert_matches(wiki_matches)
-url_updates = ctfg.update_urls(urls)

@@ -203,23 +203,3 @@ def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
     for x, matches in with_wiki_items.items():
         x.wikidata_suggestions = matches
     Listing.batch_save(list(with_wiki_items.keys()))
-
-
-def update_urls(urls):
-
-    updates = [
-        {
-            "id": k,
-            "fields": {
-                "Wikidata Official Page Suggestions": "\n".join(
-                    [x["mainsnak"]["datavalue"]["value"] for x in v]
-                )
-            },
-        }
-        for k, v in urls.items()
-    ]
-    pprint(updates)
-
-    log("Updating URLs in matched items")
-    listings.batch_update(updates)
-    return updates
