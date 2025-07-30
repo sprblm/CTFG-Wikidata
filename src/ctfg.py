@@ -6,14 +6,11 @@ import pickle
 from collections import defaultdict
 from pprint import pprint
 
+
 api_key = os.environ["AIRTABLE_API_KEY"]
 api = Api(api_key)
-bases = {
-    "timCopy": "appYLSUaPLATuDnYV",
-    "dev": "appWfbJkmPgyX0nM4",
-    "snapshot": "appFHP1OYJg69gvpK",
-}
-base_id = bases["dev"]
+
+base_id = os.environ["AIRTABLE_BASE_ID"]
 base = api.base(base_id)
 
 from pyairtable.orm import Model, fields as F
