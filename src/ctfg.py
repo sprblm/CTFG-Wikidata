@@ -144,7 +144,7 @@ def deploy_fields() -> None:
     log("Finished deploying fields")
 
 
-def get_records(from_cache=True) -> list[Listing]:
+def get_records(from_cache=False) -> list[Listing]:
     log("Getting airtable records...")
     cache_fp = "cache/ctfg.pickle"
     if from_cache:

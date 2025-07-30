@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import config
 import ctfg
 import wiki
 
 ctfg.deploy_fields()
-items = ctfg.get_records()
+items = ctfg.get_records(config.READ_CTFG_FROM_CACHE)
 types = ctfg.summarize_types(items)
 (unmatched_items, matched_items) = ctfg.partition_matched(items)
 
