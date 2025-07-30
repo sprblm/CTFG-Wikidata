@@ -7,7 +7,7 @@ import wiki
 ctfg.deploy_fields()
 items = ctfg.get_records()
 types = ctfg.summarize_types(items)
-(matched_items, unmatched_items) = ctfg.partition_matched(items)
+(unmatched_items, matched_items) = ctfg.partition_matched(items)
 
 wiki_matches = wiki.get_matches(unmatched_items, max_attempts=15)
 wiki_match_histogram = wiki.summarize_matches(wiki_matches)

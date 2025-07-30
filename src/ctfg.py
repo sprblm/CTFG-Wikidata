@@ -177,11 +177,11 @@ def summarize_types(items: list[Listing]):
         print(count, list(type))
     return types
 
+from more_itertools import partition
 
 def partition_matched(items: list[Listing]) -> tuple[list[Listing], list[Listing]]:
-    matched_items = [x for x in items if x.wikidata_item]
-    unmatched_items = [x for x in items if not x.wikidata_item]
-    return (matched_items, unmatched_items)
+    unmatched, matched = partition(lambda x: x.wikidata_item, items)
+    return (list(unmatched), list(matched))
 
 
 from itertools import batched

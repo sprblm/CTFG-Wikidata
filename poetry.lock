@@ -378,6 +378,18 @@ files = [
 traitlets = "*"
 
 [[package]]
+name = "more-itertools"
+version = "10.7.0"
+description = "More routines for operating on iterables, beyond itertools"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "more_itertools-10.7.0-py3-none-any.whl", hash = "sha256:d43980384673cb07d2f7d2d918c616b30c659c089ee23953f601d6609c67510e"},
+    {file = "more_itertools-10.7.0.tar.gz", hash = "sha256:9fddd5403be01a94b204faadcff459ec3568cf110265d3c54323e1e866ad29d3"},
+]
+
+[[package]]
 name = "mwoauth"
 version = "0.4.0"
 description = "A generic MediaWiki OAuth handshake helper."
@@ -1046,4 +1058,4 @@ ujson = ">=5.10.0,<6.0.0"
 [metadata]
 lock-version = "2.1"
 python-versions = "<4.0,>=3.13"
-content-hash = "6fe66771220a119e7e182a1dba19585b8507556e2637fabe1a6ae113f834cd2a"
+content-hash = "e6443002919dae2282e6db77042d63297c21742b35943232d555f48bee6d98e5"
