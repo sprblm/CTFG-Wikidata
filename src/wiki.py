@@ -65,14 +65,14 @@ def summarize_matches(wiki_matches):
     return count_of_counts
 
 
-def get_jsons(matched_items):
+def get_jsons(matched_items: list[ctfg.Listing]):
 
     from random import sample
 
     log("Getting wikidata json for confirmed matches...")
     matched_wikis = {
-        x["QID"]: wbi.item.get("Q" + str(x["fields"]["Wikidata ID (Number)"])).get_json()
-        for x in sample(matched_items, min(5, len(matched_items)))
+        x: wbi.item.get(x.wikidata_item.qid).get_json()
+        for x in sample(matched_items, min(50, len(matched_items)))
     }
     return matched_wikis
 
