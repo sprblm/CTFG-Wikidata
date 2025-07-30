@@ -26,7 +26,6 @@ class WikidataProperty(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Properties"
-        memoize = True
 
 
 class WikidataItem(Model):
@@ -41,7 +40,6 @@ class WikidataItem(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Items"
-        memoize = True
 
     @staticmethod
     def from_wiki_match(m: dict, keep_unknowns: bool = False):
@@ -65,7 +63,6 @@ class WikidataStatement(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Statements"
-        memoize = True
 
 
 class Listing(Model):
@@ -78,7 +75,6 @@ class Listing(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Listings"
-        memoize = True
 
 
 listings = Listing.meta.table
