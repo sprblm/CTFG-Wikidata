@@ -66,6 +66,7 @@ def summarize_matches(wiki_matches):
 
 
 def get_jsons(matched_items: list[ctfg.Listing]):
+    """Not really used any more (just for reporting urls found)"""
 
     from random import sample
 
@@ -78,6 +79,7 @@ def get_jsons(matched_items: list[ctfg.Listing]):
 
 
 def get_urls(matched_wikis):
+    """Not really used any more (just for reporting urls found)"""
     urls = {
         k: v["claims"]["P856"]
         for k, v in matched_wikis.items()
