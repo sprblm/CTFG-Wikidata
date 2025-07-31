@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 from util import *
 from pyairtable import Api
 import os
@@ -6,11 +6,10 @@ import pickle
 from collections import defaultdict
 from pprint import pprint
 
+api_key = config.airtable.api_key
+base_id = config.airtable.base_id
 
-api_key = os.environ["AIRTABLE_API_KEY"]
 api = Api(api_key)
-
-base_id = os.environ["AIRTABLE_BASE_ID"]
 base = api.base(base_id)
 
 from pyairtable.orm import Model, fields as F
@@ -75,12 +74,6 @@ class Listing(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Listings"
-
-
-listings = Listing.meta.table
-log(listings)
-log(listings.first())
-log(listings.id)
 
 
 def deploy_fields() -> None:
