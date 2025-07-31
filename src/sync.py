@@ -5,7 +5,7 @@ import config
 import ctfg
 import wiki
 
-ctfg.deploy_fields()
+# ctfg.deploy_fields() # not normally run
 items = ctfg.get_records(config.READ_CTFG_FROM_CACHE)
 types = ctfg.summarize_types(items)
 (unmatched_items, matched_items) = ctfg.partition_matched(items)
