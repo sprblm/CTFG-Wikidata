@@ -4,10 +4,6 @@
 name: Sync data
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   schedule:
     - cron:  '53 5 * * *'
 
@@ -18,7 +14,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    environment: dev
+    environment: prod
 
     steps:
     - uses: actions/checkout@v4
