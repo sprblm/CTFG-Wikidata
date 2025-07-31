@@ -34,3 +34,7 @@ CTFG DB Engine: Airtable
 questions:
 1. make sure Wikidata IDs don't duplicate in airtable?
 
+# First-time deployment
+The regular run will deploy some things (like fields),
+but consult [./manual_deployments.md](./manual_deployments.md) to see what needs to be deployed manually.
+

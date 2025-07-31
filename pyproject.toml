@@ -10,6 +10,7 @@ requires-python = "<4.0,>=3.13"
 dependencies = [
     "wikibaseintegrator (>=0.12.12,<0.13.0)",
     "pyairtable (>=3.1.1,<4.0.0)",
+    "more_itertools"
 ]
 
 [tool.poetry]
@@ -18,6 +19,8 @@ package-mode = false
 [tool.poetry.group.dev.dependencies]
 ipython = "^9.2.0"
 dotenv = "^0.9.9"
+black = "^25.1.0"
+mypy = "^1.17.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

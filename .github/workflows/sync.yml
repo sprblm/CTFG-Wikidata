@@ -29,9 +29,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install poetry
-        poetry install
+        poetry install --sync
     - name: Run
       run: |
-        poetry run python -m sync
+        poetry run python src/sync.py
       env:
         AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+        AIRTABLE_BASE_ID: ${{ vars.AIRTABLE_BASE_ID }}
