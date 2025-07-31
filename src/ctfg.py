@@ -32,7 +32,8 @@ class WikidataItem(Model):
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
     statements = F.LinkField("Statements", "Wikidata Statements")
-    listings = F.LinkField("Listings", "Listing")
+    listings = F.LinkField("Listing Suggestions", "Listing")
+    # listing = F.LinkField("Listing Official", "Listing")
     url = F.UrlField("Wikidata Page", readonly=True)
 
     class Meta:
@@ -66,7 +67,7 @@ class WikidataStatement(Model):
 
 class Listing(Model):
     name = F.SingleLineTextField("Project name")
-    wikidata_item = F.SingleLinkField("Wikidata Item", WikidataItem)
+    wikidata_item = F.SingleLinkField("Wikidata Item Official", WikidataItem)
     wikidata_suggestions = F.LinkField("Wikidata Item Suggestions", WikidataItem)
     type = F.MultipleSelectField("Type")
 
@@ -81,6 +82,12 @@ def deploy_fields() -> None:
     models: dict[Any, dict[Any, dict[str, Any]]] = {
         WikidataItem: {
             WikidataItem.qid: {
+                "field_type": "singleLineText",
+            },
+            WikidataItem.label: {
+                "field_type": "singleLineText",
+            },
+            WikidataItem.description: {
                 "field_type": "singleLineText",
             },
             WikidataItem.listings: {
