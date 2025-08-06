@@ -1,13 +1,16 @@
+# needs env protections, which needs repo to be public
+
+
+
+
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
 name: Sync data
 
 on:
-  push:
+  pull_request:
     branches: [ "main" ]
-  schedule:
-    - cron:  '53 5 * * *'
 
 permissions:
   contents: read
@@ -16,7 +19,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    environment: prod
+    environment: dev
 
     steps:
     - uses: actions/checkout@v4
