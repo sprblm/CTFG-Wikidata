@@ -14,8 +14,8 @@ it will likely lead to new points of integration
 (e.g. syncing attributes of the entity between the two databases).
 
 # Process
-1. Extract: Pull CTFG records (of relevant `Type`s, like "Organization").
-1. Extract: Search Wikidata for IDs to match any Orgs that don't have one yet.
+1. Extract: Pull a sample of CTFG records.
+1. Extract: Search Wikidata for IDs to match any Listings that don't have one yet.
 1. Load: Update CTFG with (possibly multiple) matching Wikidata IDs.
 1. Load: For well-matched Wikidata IDs, pull entire record into special field of CTFG.
 1. Transform: Present suggested updates in new field(s) of CTFG DB.
@@ -35,6 +35,5 @@ questions:
 1. make sure Wikidata IDs don't duplicate in airtable?
 
 # First-time deployment
-The regular run will deploy some things (like fields),
+The regular run might deploy some things (like basic fields),
 but consult [./manual_deployments.md](./manual_deployments.md) to see what needs to be deployed manually.
-
