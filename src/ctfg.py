@@ -16,7 +16,7 @@ from pyairtable.orm import Model, fields as F
 
 
 class WikidataProperty(Model):
-    pid_num = F.IntegerField("PID")
+    pid = F.SingleLineTextField("PID")
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
     statements = F.LinkField("Statements", "Wikidata Statements")
