@@ -19,7 +19,7 @@ class WikidataProperty(Model):
     pid = F.SingleLineTextField("PID")
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
-    statements = F.LinkField("Statements", "Wikidata Statements")
+    # statements = F.LinkField("Statements", "Wikidata Statements")
 
     class Meta:
         api_key = api_key
@@ -27,12 +27,54 @@ class WikidataProperty(Model):
         table_name = "Wikidata Properties"
 
 
+
+class WikidataStatement(Model):
+    uuid = F.SingleLineTextField("Identifier")
+    property = F.SingleLinkField("Wikidata Property", WikidataProperty)
+    datatype = F.SingleLineTextField("Data Type")
+    values = F.LinkField("Value Attributes", WikidataStatementValueAttribute)
+    # item = F.SingleLinkField("Wikidata Item", WikidataItem)
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Wikidata Statements"
+
+    @staticmethod
+    def from_wiki_statement(m: dict, keep_unknowns: bool = False):
+        keyMapping = {
+            "uuid": "id",
+            "property": "property",
+            "datatype": "datatype",
+        }
+        mappable = {k: m[v] for k, v in keyMapping.items()}
+
+        def parseStatement(statement: dict) -> WikidataStatement:
+            uuid: str = statement["id"]
+
+            # Ignore alternatives, qualifiers, and references
+            statement = statement["mainsnak"]
+
+            statement["uuid"] = uuid
+            statement["value_json"] = dumps(statement["value"])
+            statement["value"] = WikidataStatementValue.from_wiki_dict(
+                uuid, statement["value"]
+            )
+            statement["property"] = WikidataProperty.from_wikidata_id(
+                statement["property"]
+            )
+
+            return WikidataStatement(**statement)
+
+        return WikidataItem(**mappable)
+
+
 class WikidataItem(Model):
     qid = F.SingleLineTextField("QID")
     label = F.SingleLineTextField("Label")
     description = F.MultilineTextField("Description")
-    statements = F.LinkField("Statements", "Wikidata Statements")
-    listings = F.LinkField("Listing Suggestions", "Listing")
+    statements = F.LinkField("Statements", WikidataStatement)
+    # listings = F.LinkField("Listing Suggestions", "Listing")
     # listing = F.LinkField("Listing Official", "Listing")
     url = F.UrlField("Wikidata Page", readonly=True)
 
@@ -47,22 +89,10 @@ class WikidataItem(Model):
             "qid": "id",
             "label": "label",
             "description": "description",
+            # "statements": "statements",
         }
         mappable = {k: m[v] for k, v in keyMapping.items()}
         return WikidataItem(**mappable)
-
-
-class WikidataStatement(Model):
-    qid_num = F.IntegerField("QID")
-    label = F.SingleLineTextField("Label")
-    description = F.MultilineTextField("Description")
-    property = F.SingleLinkField("Wikidata Property", WikidataProperty)
-    item = F.SingleLinkField("Wikidata Item", WikidataItem)
-
-    class Meta:
-        api_key = api_key
-        base_id = base_id
-        table_name = "Wikidata Statements"
 
 
 class Listing(Model):
@@ -89,15 +119,6 @@ def deploy_fields() -> None:
             },
             WikidataItem.description: {
                 "field_type": "singleLineText",
-            },
-            WikidataItem.listings: {
-                "field_type": "multipleRecordLinks",
-                "description": "CTFG listings that are suspected to match this wikidata item",
-                "options": {
-                    "linkedTableId": Listing.meta.table.id,
-                    # "isReversed": True,
-                    # "prefersSingleRecordLink": True,
-                },
             },
             WikidataItem.url: {
                 "field_type": "singleLineText",
