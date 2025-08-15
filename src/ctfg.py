@@ -6,6 +6,7 @@ import os
 import pickle
 from collections import defaultdict
 from pprint import pprint
+from functools import lru_cache
 
 api_key = config.airtable.api_key
 base_id = config.airtable.base_id
@@ -27,7 +28,7 @@ class WikidataProperty(Model):
         base_id = base_id
         table_name = "Wikidata Properties"
 
-    # !need to memoize this!
+    @lru_cache(maxsize=None)
     @staticmethod
     def from_wikidata_id(pid: str):
         p = config.wbi.property.get(pid)
@@ -277,3 +278,4 @@ def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
     for x, matches in with_wiki_items.items():
         x.wikidata_suggestions = matches
     Listing.batch_save(list(with_wiki_items.keys()))
+
