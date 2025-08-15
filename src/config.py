@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 from dotenv import load_dotenv
 from wikibaseintegrator.wbi_config import config as wbi_config
+from wikibaseintegrator import wbi_login
 from wikibaseintegrator import WikibaseIntegrator
 
 load_dotenv()
