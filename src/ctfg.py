@@ -79,7 +79,7 @@ class WikidataStatementValue(Model):
         return WikidataStatementValue(
             uuid=uuid,
             type=datavalue["type"],
-            json=dumps(datavalue["value"]),
+            json=dumps(datavalue["value"], indent=2),
             attributes=WikidataStatementValue.parse_value_attributes(
                 datavalue["value"]
             ),
