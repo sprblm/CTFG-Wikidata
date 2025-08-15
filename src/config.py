@@ -19,10 +19,17 @@ class airtable:
     base_id: str = os.environ["AIRTABLE_BASE_ID"]
 
 
-wbi_config["USER_AGENT"] = (
-    "AutomationDev/0.1 (https://www.wikidata.org/wiki/User:TECCLESTON-TECH"
-)
+WIKIDATA_BOT_USERNAME = os.getenv("WIKIDATA_BOT_USERNAME", None)
+WIKIDATA_BOT_PW = os.getenv("WIKIDATA_BOT_PW", None)
 
-wbi = WikibaseIntegrator()
+if WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
+    wbi = WikibaseIntegrator()
+    wbi.login(user=WIKIDATA_BOT_USERNAME, password=WIKIDATA_BOT_PW)
+else:
+    wbi_config["USER_AGENT"] = (
+        "AutomationDev/0.1 (https://www.wikidata.org/wiki/User:TECCLESTON-TECH"
+    )
+    wbi = WikibaseIntegrator()
 
-LANGUAGE_CODE="en"
+
+LANGUAGE_CODE = "en"
