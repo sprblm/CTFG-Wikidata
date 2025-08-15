@@ -1,3 +1,4 @@
+from json import dumps
 from typing import Any
 from util import *
 from pyairtable import Api
@@ -26,13 +27,69 @@ class WikidataProperty(Model):
         base_id = base_id
         table_name = "Wikidata Properties"
 
+    # !need to memoize this!
+    @staticmethod
+    def from_wikidata_id(pid: str):
+        p = config.wbi.property.get(pid)
+        return WikidataProperty(
+            pid=p.id,
+            label=str(p.labels.values.get(config.LANGUAGE_CODE)),
+            description=str(p.descriptions.get(config.LANGUAGE_CODE)),
+        )
+
+
+class WikidataStatementValueAttribute(Model):
+    uuid = F.SingleLineTextField("Identifier")
+    key = F.SingleLineTextField("Value Attribute Key")
+    value = F.SingleLineTextField("Value Attribute Value")
+    # statement = F.LinkField("Statement", "Wikidata Statements")
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Wikidata Statement Value Attributes"
+
+
+class WikidataStatementValue(Model):
+    uuid = F.SingleLineTextField("Identifier")
+    type = F.SingleLineTextField("Wikidata Type")
+    json = F.MultilineTextField("Wikidata Value JSON")
+    attributes = F.LinkField("Attributes", WikidataStatementValueAttribute)
+
+    class Meta:
+        api_key = api_key
+        base_id = base_id
+        table_name = "Wikidata Statement Value Attributes"
+
+    @staticmethod
+    def parse_value_attributes(
+        value: dict | str,
+    ) -> list[WikidataStatementValueAttribute]:
+        if isinstance(value, str):
+            value = {"key": "string", "value": value}
+
+        return [
+            WikidataStatementValueAttribute(key=str(k), value=str(v))
+            for k, v in value.items()
+        ]
+
+    @staticmethod
+    def from_wiki_dict(uuid: str, datavalue: dict):
+        return WikidataStatementValue(
+            uuid=uuid,
+            type=datavalue["type"],
+            json=dumps(datavalue["value"]),
+            attributes=WikidataStatementValue.parse_value_attributes(
+                datavalue["value"]
+            ),
+        )
 
 
 class WikidataStatement(Model):
     uuid = F.SingleLineTextField("Identifier")
     property = F.SingleLinkField("Wikidata Property", WikidataProperty)
     datatype = F.SingleLineTextField("Data Type")
-    values = F.LinkField("Value Attributes", WikidataStatementValueAttribute)
+    value = F.SingleLinkField("Value", WikidataStatementValue)
     # item = F.SingleLinkField("Wikidata Item", WikidataItem)
 
     class Meta:
@@ -41,32 +98,23 @@ class WikidataStatement(Model):
         table_name = "Wikidata Statements"
 
     @staticmethod
-    def from_wiki_statement(m: dict, keep_unknowns: bool = False):
-        keyMapping = {
-            "uuid": "id",
-            "property": "property",
-            "datatype": "datatype",
-        }
-        mappable = {k: m[v] for k, v in keyMapping.items()}
+    def from_wiki_statement(statement: dict):
+        uuid: str = statement["id"]
 
-        def parseStatement(statement: dict) -> WikidataStatement:
-            uuid: str = statement["id"]
+        # Ignore alternatives, qualifiers, and references
+        statement = statement["mainsnak"]
 
-            # Ignore alternatives, qualifiers, and references
-            statement = statement["mainsnak"]
+        property = WikidataProperty.from_wikidata_id(statement["property"])
+        datavalue = statement.get("datavalue", None)
+        value = (
+            WikidataStatementValue.from_wiki_dict(uuid, datavalue)
+            if datavalue
+            else None
+        )
 
-            statement["uuid"] = uuid
-            statement["value_json"] = dumps(statement["value"])
-            statement["value"] = WikidataStatementValue.from_wiki_dict(
-                uuid, statement["value"]
-            )
-            statement["property"] = WikidataProperty.from_wikidata_id(
-                statement["property"]
-            )
-
-            return WikidataStatement(**statement)
-
-        return WikidataItem(**mappable)
+        return WikidataStatement(
+            uuid=uuid, property=property, datatype=statement["datatype"], value=value
+        )
 
 
 class WikidataItem(Model):
@@ -85,14 +133,24 @@ class WikidataItem(Model):
 
     @staticmethod
     def from_wiki_match(m: dict, keep_unknowns: bool = False):
+
         keyMapping = {
             "qid": "id",
             "label": "label",
             "description": "description",
-            # "statements": "statements",
         }
         mappable = {k: m[v] for k, v in keyMapping.items()}
-        return WikidataItem(**mappable)
+
+        claims = config.wbi.item.get(mappable["qid"]).claims.get_json()
+        pprint(claims)
+
+        import pdb
+
+        # pdb.set_trace()
+        statements = [
+            WikidataStatement.from_wiki_statement(s) for p in claims.values() for s in p
+        ]
+        return WikidataItem(**mappable, statements=statements)
 
 
 class Listing(Model):
@@ -213,7 +271,7 @@ def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
     wiki_items = list(set([x for y in with_wiki_items.values() for x in y]))
 
     log("Example item")
-    pprint(wiki_items[0].to_record())
+    # pprint(wiki_items[0].to_record())
     WikidataItem.batch_save(wiki_items)
 
     for x, matches in with_wiki_items.items():

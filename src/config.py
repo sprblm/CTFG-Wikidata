@@ -24,3 +24,5 @@ wbi_config["USER_AGENT"] = (
 )
 
 wbi = WikibaseIntegrator()
+
+LANGUAGE_CODE="en"
