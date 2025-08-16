@@ -39,11 +39,13 @@ class WikidataProperty(Model):
             label=str(p.labels.values.get(config.LANGUAGE_CODE)),
             description=str(p.descriptions.get(config.LANGUAGE_CODE)),
         )
+        converted.save()
         return converted
 
     @classmethod
     def recursive_save(cls, siblings: list[Self]):
         cls.batch_save(siblings)
+
 
 class WikidataStatementValueAttribute(Model):
     uuid = F.SingleLineTextField("Identifier")
@@ -75,14 +77,16 @@ class WikidataStatementValue(Model):
         if isinstance(value, str):
             value = {"key": "string", "value": value}
 
-        return [
+        attributes = [
             WikidataStatementValueAttribute(key=str(k), value=str(v))
             for k, v in value.items()
         ]
+        WikidataStatementValueAttribute.batch_save(attributes)
+        return attributes
 
     @staticmethod
     def from_wiki_dict(uuid: str, datavalue: dict):
-        return WikidataStatementValue(
+        result = WikidataStatementValue(
             uuid=uuid,
             type=datavalue["type"],
             json=dumps(datavalue["value"], indent=2),
@@ -90,6 +94,8 @@ class WikidataStatementValue(Model):
                 datavalue["value"]
             ),
         )
+        result.save()
+        return result
 
     def children(self) -> set[WikidataStatementValueAttribute]:
         return set(self.attributes)
@@ -131,9 +137,11 @@ class WikidataStatement(Model):
             else None
         )
 
-        return WikidataStatement(
+        result = WikidataStatement(
             uuid=uuid, property=property, datatype=statement["datatype"], value=value
         )
+        result.save()
+        return result
 
     def children(self) -> dict[TypeAlias, set]:
         res: dict[TypeAlias, set] = {}
@@ -192,7 +200,9 @@ class WikidataItem(Model):
         statements = [
             WikidataStatement.from_wiki_statement(s) for p in claims.values() for s in p
         ]
-        return WikidataItem(**mappable, statements=statements)
+        result = WikidataItem(**mappable, statements=statements)
+        result.save()
+        return result
 
     def children(self) -> set[WikidataStatement]:
         return set(self.statements)
@@ -342,4 +352,4 @@ def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
 
     for x, matches in with_wiki_items.items():
         x.wikidata_suggestions = matches
-    Listing.recursive_save(list(with_wiki_items.keys()))
+    Listing.batch_save(list(with_wiki_items.keys()))
