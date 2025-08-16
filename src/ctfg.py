@@ -194,9 +194,6 @@ class WikidataItem(Model):
         claims = config.wbi.item.get(mappable["qid"]).claims.get_json()
         pprint(claims)
 
-        import pdb
-
-        # pdb.set_trace()
         statements = [
             WikidataStatement.from_wiki_statement(s) for p in claims.values() for s in p
         ]
