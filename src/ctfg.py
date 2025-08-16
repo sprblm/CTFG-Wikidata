@@ -68,7 +68,7 @@ class WikidataStatementValue(Model):
     class Meta:
         api_key = api_key
         base_id = base_id
-        table_name = "Wikidata Statement Value Attributes"
+        table_name = "Wikidata Statement Value"
 
     @staticmethod
     def parse_value_attributes(
