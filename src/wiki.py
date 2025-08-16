@@ -65,6 +65,7 @@ def get_jsons(matched_items: list[ctfg.Listing]):
     matched_wikis = {
         x: config.wbi.item.get(x.wikidata_item.qid).get_json()
         for x in sample(matched_items, min(50, len(matched_items)))
+        if x.wikidata_item
     }
     log("Example wikidata json:")
     pprint(list(matched_wikis.values())[0])
