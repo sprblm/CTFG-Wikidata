@@ -75,7 +75,7 @@ class WikidataStatementValue(Model):
         value: dict | str,
     ) -> list[WikidataStatementValueAttribute]:
         if isinstance(value, str):
-            value = {"key": "string", "value": value}
+            value = {"string": value}
 
         attributes = [
             WikidataStatementValueAttribute(key=str(k), value=str(v))
