@@ -1,5 +1,5 @@
 from json import dumps
-from typing import Any
+from typing import Any, Self, TypeAlias
 from util import *
 from pyairtable import Api
 import os
@@ -7,6 +7,7 @@ import pickle
 from collections import defaultdict
 from pprint import pprint
 from functools import lru_cache
+from collections import defaultdict
 
 api_key = config.airtable.api_key
 base_id = config.airtable.base_id
@@ -27,17 +28,22 @@ class WikidataProperty(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Wikidata Properties"
+        memoize = True
 
     @lru_cache(maxsize=None)
     @staticmethod
     def from_wikidata_id(pid: str):
         p = config.wbi.property.get(pid)
-        return WikidataProperty(
+        converted = WikidataProperty(
             pid=p.id,
             label=str(p.labels.values.get(config.LANGUAGE_CODE)),
             description=str(p.descriptions.get(config.LANGUAGE_CODE)),
         )
+        return converted
 
+    @classmethod
+    def recursive_save(cls, siblings: list[Self]):
+        cls.batch_save(siblings)
 
 class WikidataStatementValueAttribute(Model):
     uuid = F.SingleLineTextField("Identifier")
@@ -85,6 +91,18 @@ class WikidataStatementValue(Model):
             ),
         )
 
+    def children(self) -> set[WikidataStatementValueAttribute]:
+        return set(self.attributes)
+
+    @classmethod
+    def next_generation(cls, siblings: list[Self]) -> list:
+        return list(set(c for sib in siblings for c in sib.children()))
+
+    @classmethod
+    def recursive_save(cls, siblings: list[Self]):
+        WikidataStatementValueAttribute.batch_save(cls.next_generation(siblings))
+        cls.batch_save(siblings)
+
 
 class WikidataStatement(Model):
     uuid = F.SingleLineTextField("Identifier")
@@ -116,6 +134,29 @@ class WikidataStatement(Model):
         return WikidataStatement(
             uuid=uuid, property=property, datatype=statement["datatype"], value=value
         )
+
+    def children(self) -> dict[TypeAlias, set]:
+        res: dict[TypeAlias, set] = {}
+        if self.property:
+            res[WikidataProperty] = {self.property}
+        if self.value:
+            res[WikidataStatementValue] = {self.property}
+        return res
+
+    @classmethod
+    def next_generation(cls, siblings: list[Self]) -> dict[TypeAlias, set[Model]]:
+        agg: defaultdict[TypeAlias, set] = defaultdict(set)
+        for sib in siblings:
+            child_dict = sib.children()
+            for typ, kids in child_dict.items():
+                agg[typ].union(kids)
+        return agg
+
+    @classmethod
+    def recursive_save(cls, siblings: list[Self]):
+        for typ, kids in cls.next_generation(siblings).items():
+            typ.recursive_save(kids)
+        cls.batch_save(siblings)
 
 
 class WikidataItem(Model):
@@ -153,6 +194,18 @@ class WikidataItem(Model):
         ]
         return WikidataItem(**mappable, statements=statements)
 
+    def children(self) -> set[WikidataStatement]:
+        return set(self.statements)
+
+    @classmethod
+    def next_generation(cls, siblings: list[Self]) -> list:
+        return list(set(c for sib in siblings for c in sib.children()))
+
+    @classmethod
+    def recursive_save(cls, siblings: list[Self]):
+        WikidataStatement.recursive_save(cls.next_generation(siblings))
+        cls.batch_save(siblings)
+
 
 class Listing(Model):
     name = F.SingleLineTextField("Project name")
@@ -164,6 +217,18 @@ class Listing(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Listings"
+
+    def children(self) -> set[WikidataItem]:
+        return set(self.wikidata_suggestions)
+
+    @classmethod
+    def next_generation(cls, siblings: list[Self]) -> list:
+        return list(set(c for sib in siblings for c in sib.children()))
+
+    @classmethod
+    def recursive_save(cls, siblings: list[Self]):
+        WikidataItem.recursive_save(cls.next_generation(siblings))
+        cls.batch_save(siblings)
 
 
 def deploy_fields() -> None:
@@ -273,9 +338,8 @@ def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
 
     log("Example item")
     # pprint(wiki_items[0].to_record())
-    WikidataItem.batch_save(wiki_items)
+    # WikidataItem.recursive_save(wiki_items)
 
     for x, matches in with_wiki_items.items():
         x.wikidata_suggestions = matches
-    Listing.batch_save(list(with_wiki_items.keys()))
-
+    Listing.recursive_save(list(with_wiki_items.keys()))
