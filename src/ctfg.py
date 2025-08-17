@@ -72,13 +72,15 @@ class WikidataStatementValue(Model):
 
     @staticmethod
     def parse_value_attributes(
-        value: dict | str,
+        value: dict | str, base_id: str
     ) -> list[WikidataStatementValueAttribute]:
         if isinstance(value, str):
             value = {"string": value}
 
         attributes = [
-            WikidataStatementValueAttribute(key=str(k), value=str(v))
+            WikidataStatementValueAttribute(
+                uuid=base_id + str(k), key=str(k), value=str(v)
+            )
             for k, v in value.items()
         ]
         WikidataStatementValueAttribute.batch_save(attributes)
@@ -91,7 +93,7 @@ class WikidataStatementValue(Model):
             type=datavalue["type"],
             json=dumps(datavalue["value"], indent=2),
             attributes=WikidataStatementValue.parse_value_attributes(
-                datavalue["value"]
+                datavalue["value"], uuid
             ),
         )
         result.save()
