@@ -270,9 +270,6 @@ def partition_matched(items: list[Listing]) -> tuple[list[Listing], list[Listing
     return (list(unmatched), list(matched))
 
 
-from itertools import batched
-
-
 def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
     log("Updating CTFG with matching wikibase IDs...")
     with_wiki_items = {
