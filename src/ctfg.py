@@ -1,5 +1,5 @@
 from json import dumps
-from typing import Any, Self, TypeAlias
+from typing import Any
 from util import *
 from pyairtable import Api
 import os
@@ -41,10 +41,6 @@ class WikidataProperty(Model):
         )
         converted.save()
         return converted
-
-    @classmethod
-    def recursive_save(cls, siblings: list[Self]):
-        cls.batch_save(siblings)
 
 
 class WikidataStatementValueAttribute(Model):
@@ -99,18 +95,6 @@ class WikidataStatementValue(Model):
         result.save()
         return result
 
-    def children(self) -> set[WikidataStatementValueAttribute]:
-        return set(self.attributes)
-
-    @classmethod
-    def next_generation(cls, siblings: list[Self]) -> list:
-        return list(set(c for sib in siblings for c in sib.children()))
-
-    @classmethod
-    def recursive_save(cls, siblings: list[Self]):
-        WikidataStatementValueAttribute.batch_save(cls.next_generation(siblings))
-        cls.batch_save(siblings)
-
 
 class WikidataStatement(Model):
     uuid = F.SingleLineTextField("Identifier")
@@ -144,29 +128,6 @@ class WikidataStatement(Model):
         )
         result.save()
         return result
-
-    def children(self) -> dict[TypeAlias, set]:
-        res: dict[TypeAlias, set] = {}
-        if self.property:
-            res[WikidataProperty] = {self.property}
-        if self.value:
-            res[WikidataStatementValue] = {self.property}
-        return res
-
-    @classmethod
-    def next_generation(cls, siblings: list[Self]) -> dict[TypeAlias, set[Model]]:
-        agg: defaultdict[TypeAlias, set] = defaultdict(set)
-        for sib in siblings:
-            child_dict = sib.children()
-            for typ, kids in child_dict.items():
-                agg[typ].union(kids)
-        return agg
-
-    @classmethod
-    def recursive_save(cls, siblings: list[Self]):
-        for typ, kids in cls.next_generation(siblings).items():
-            typ.recursive_save(kids)
-        cls.batch_save(siblings)
 
 
 class WikidataItem(Model):
@@ -203,18 +164,6 @@ class WikidataItem(Model):
         result.save()
         return result
 
-    def children(self) -> set[WikidataStatement]:
-        return set(self.statements)
-
-    @classmethod
-    def next_generation(cls, siblings: list[Self]) -> list:
-        return list(set(c for sib in siblings for c in sib.children()))
-
-    @classmethod
-    def recursive_save(cls, siblings: list[Self]):
-        WikidataStatement.recursive_save(cls.next_generation(siblings))
-        cls.batch_save(siblings)
-
 
 class Listing(Model):
     name = F.SingleLineTextField("Project name")
@@ -226,18 +175,6 @@ class Listing(Model):
         api_key = api_key
         base_id = base_id
         table_name = "Listings"
-
-    def children(self) -> set[WikidataItem]:
-        return set(self.wikidata_suggestions)
-
-    @classmethod
-    def next_generation(cls, siblings: list[Self]) -> list:
-        return list(set(c for sib in siblings for c in sib.children()))
-
-    @classmethod
-    def recursive_save(cls, siblings: list[Self]):
-        WikidataItem.recursive_save(cls.next_generation(siblings))
-        cls.batch_save(siblings)
 
 
 def deploy_fields() -> None:
