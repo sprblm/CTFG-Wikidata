@@ -29,9 +29,6 @@ wbi_config["USER_AGENT"] = (
 )
 
 if WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
-    print(WIKIDATA_BOT_USERNAME)
-    print(len(WIKIDATA_BOT_PW))
-
     wbi_login.Login(user=WIKIDATA_BOT_USERNAME, password=WIKIDATA_BOT_PW)
 
 wbi = WikibaseIntegrator()
