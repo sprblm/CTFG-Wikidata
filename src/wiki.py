@@ -7,13 +7,7 @@ from wikibaseintegrator.wbi_helpers import search_entities
 from random import sample
 import ctfg
 
-
-from wikibaseintegrator import WikibaseIntegrator
-from wikibaseintegrator.wbi_config import config as wbi_config
-
-wbi_config["USER_AGENT"] = (
-    "AutomationDev/0.1 (https://www.wikidata.org/wiki/User:TECCLESTON-TECH"
-)
+from wikibaseintegrator.entities.property import PropertyEntity
 
 
 def get_matches(
@@ -44,9 +38,6 @@ def get_matches(
     return wiki_matches
 
 
-wbi = WikibaseIntegrator()
-
-
 def summarize_matches(wiki_matches):
     count_of_counts = defaultdict(int)
     for x in wiki_matches.values():
@@ -72,9 +63,12 @@ def get_jsons(matched_items: list[ctfg.Listing]):
 
     log("Getting wikidata json for confirmed matches...")
     matched_wikis = {
-        x: wbi.item.get(x.wikidata_item.qid).get_json()
+        x: config.wbi.item.get(x.wikidata_item.qid).get_json()
         for x in sample(matched_items, min(50, len(matched_items)))
+        if x.wikidata_item
     }
+    log("Example wikidata json:")
+    pprint(list(matched_wikis.values())[0])
     return matched_wikis
 
 
