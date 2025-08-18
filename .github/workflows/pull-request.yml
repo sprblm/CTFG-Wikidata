@@ -37,5 +37,5 @@ jobs:
       env:
         AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
         AIRTABLE_BASE_ID: ${{ vars.AIRTABLE_BASE_ID }}
-        WIKIDATA_BOT_PW: $${{ secrets.WIKIDATA_BOT_PW }}
-        WIKIDATA_BOT_USERNAME: $${{ secrets.WIKIDATA_BOT_USERNAME }}
+        WIKIDATA_BOT_PW: ${{ secrets.WIKIDATA_BOT_PW }}
+        WIKIDATA_BOT_USERNAME: ${{ secrets.WIKIDATA_BOT_USERNAME }}
