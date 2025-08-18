@@ -155,7 +155,7 @@ class WikidataItem(Model):
         mappable = {k: m[v] for k, v in keyMapping.items()}
 
         claims = config.wbi.item.get(mappable["qid"]).claims.get_json()
-        pprint(claims)
+        # pprint(claims)
 
         statements = [
             WikidataStatement.from_wiki_statement(s) for p in claims.values() for s in p
