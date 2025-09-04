@@ -11,7 +11,10 @@ from wikibaseintegrator.entities.property import PropertyEntity
 
 
 def get_matches(
-    items: list[ctfg.Listing], max_attempts=None, from_cache=False
+    items: list[ctfg.Listing],
+    max_attempts=None,
+    from_cache=False,
+    max_results: int = 50,
 ) -> dict[ctfg.Listing, list[dict[str, Any]]]:
     matchable_items = [x for x in items if x.name]
     attempting_items = (
@@ -27,7 +30,9 @@ def get_matches(
     else:
         wiki_matches = {}
         for x in attempting_items:
-            raw_matches = search_entities(x.name, "en", dict_result=True)
+            raw_matches = search_entities(
+                x.name, config.LANGUAGE_CODE, dict_result=True, max_results=max_results
+            )
             wiki_matches[x] = raw_matches
 
         if not max_attempts:
