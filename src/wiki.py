@@ -18,7 +18,9 @@ def get_matches(
 ) -> dict[ctfg.Listing, list[dict[str, Any]]]:
     matchable_items = [x for x in items if x.name]
     attempting_items = (
-        sample(matchable_items, max_attempts) if max_attempts else matchable_items
+        sample(matchable_items, max_attempts)
+        if max_attempts and max_attempts < len(matchable_items)
+        else matchable_items
     )
     log(
         f"Searching for wikibase matches for {len(attempting_items)} {'random' if max_attempts else 'matchable'} items..."
