@@ -13,6 +13,10 @@ READ_CTFG_FROM_CACHE: bool = "TRUE".startswith(
     os.getenv("READ_CTFG_FROM_CACHE", "False").upper()
 )
 
+POST_DETAILS_TO_CTFG: bool = "TRUE".startswith(
+    os.getenv("POST_DETAILS_TO_CTFG", "False").upper()
+)
+
 
 @dataclass
 class airtable:
@@ -33,9 +37,12 @@ if WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
 
 wbi = WikibaseIntegrator()
 
-WIKIDATA_MAX_RESULTS_PER_SEARCH: int = int(
-    os.getenv("WIKIDATA_MAX_RESULTS_PER_SEARCH", 50)
-)
+def getEnvInt(name: str, default: int) -> int:
+    raw = os.getenv("WIKIDATA_MAX_RESULTS_PER_SEARCH")
+    return int(raw) if raw else default
 
+WIKIDATA_MAX_LISTINGS_TO_SEARCH: int = getEnvInt("WIKIDATA_MAX_LISTINGS_TO_SEARCH", 5)
+
+WIKIDATA_MAX_RESULTS_PER_SEARCH: int = getEnvInt("WIKIDATA_MAX_RESULTS_PER_SEARCH", 5)
 
 LANGUAGE_CODE = "en"
