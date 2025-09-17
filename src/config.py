@@ -23,13 +23,29 @@ class airtable:
 WIKIDATA_BOT_USERNAME = os.getenv("WIKIDATA_BOT_USERNAME", None)
 WIKIDATA_BOT_PW = os.getenv("WIKIDATA_BOT_PW", None)
 
+WIKIDATA_OAUTH2_CLIENT_APPLICATION_KEY = os.getenv(
+    "WIKIDATA_OAUTH2_CLIENT_APPLICATION_KEY", None
+)
+WIKIDATA_OAUTH2_CLIENT_APPLICATION_SECRET = os.getenv(
+    "WIKIDATA_OAUTH2_CLIENT_APPLICATION_SECRET", None
+)
+WIKIDATA_OAUTH2_ACCESS_TOKEN = os.getenv(
+    "WIKIDATA_OAUTH2_ACCESS_TOKEN", None
+)
 
 wbi_config["USER_AGENT"] = (
     "CTFG-Wikidata/0.1 (https://www.wikidata.org/wiki/User:TECCLESTON-TECH, https://github.com/sprblm/CTFG-Wikidata)"
 )
 
-if WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
-    wbi_login.Login(user=WIKIDATA_BOT_USERNAME, password=WIKIDATA_BOT_PW)
+if WIKIDATA_OAUTH2_CLIENT_APPLICATION_KEY and WIKIDATA_OAUTH2_CLIENT_APPLICATION_SECRET:
+    login_instance = wbi_login.OAuth2(
+        consumer_token=WIKIDATA_OAUTH2_CLIENT_APPLICATION_KEY,
+        consumer_secret=WIKIDATA_OAUTH2_CLIENT_APPLICATION_SECRET,
+    )
+elif WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
+    login_instance = wbi_login.Login(
+        user=WIKIDATA_BOT_USERNAME, password=WIKIDATA_BOT_PW
+    )
 
 wbi = WikibaseIntegrator()
 
