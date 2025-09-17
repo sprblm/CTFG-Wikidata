@@ -11,7 +11,9 @@ types = ctfg.summarize_types(items)
 (unmatched_items, matched_items) = ctfg.partition_matched(items)
 
 wiki_matches = wiki.get_matches(
-    unmatched_items, max_attempts=5, max_results=config.WIKIDATA_MAX_RESULTS_PER_SEARCH
+    unmatched_items,
+    max_attempts=config.WIKIDATA_MAX_LISTINGS_TO_SEARCH,
+    max_results=config.WIKIDATA_MAX_RESULTS_PER_SEARCH,
 )
 # wiki_match_histogram = wiki.summarize_matches(wiki_matches)
 
