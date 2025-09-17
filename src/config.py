@@ -38,7 +38,7 @@ if WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
 wbi = WikibaseIntegrator()
 
 WIKIDATA_MAX_RESULTS_PER_SEARCH: int = int(
-    os.getenv("WIKIDATA_MAX_RESULTS_PER_SEARCH", 50)
+    os.getenv("WIKIDATA_MAX_RESULTS_PER_SEARCH", 5)
 )
 
 
