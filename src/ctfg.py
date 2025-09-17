@@ -119,7 +119,7 @@ class WikidataStatement(Model):
         datavalue = statement.get("datavalue", None)
         value = (
             WikidataStatementValue.from_wiki_dict(uuid, datavalue)
-            if datavalue
+            if datavalue and config.POST_DETAILS_TO_CTFG
             else None
         )
 
@@ -158,10 +158,7 @@ class WikidataItem(Model):
         # pprint(claims)
 
         statements = [
-            WikidataStatement.from_wiki_statement(s)
-            for p in claims.values()
-            for s in p
-            if config.POST_DETAILS_TO_CTFG
+            WikidataStatement.from_wiki_statement(s) for p in claims.values() for s in p
         ]
         result = WikidataItem(**mappable, statements=statements)
         result.save()
