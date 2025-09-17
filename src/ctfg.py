@@ -158,7 +158,10 @@ class WikidataItem(Model):
         # pprint(claims)
 
         statements = [
-            WikidataStatement.from_wiki_statement(s) for p in claims.values() for s in p
+            WikidataStatement.from_wiki_statement(s)
+            for p in claims.values()
+            for s in p
+            if config.POST_DETAILS_TO_CTFG
         ]
         result = WikidataItem(**mappable, statements=statements)
         result.save()

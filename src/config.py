@@ -13,6 +13,10 @@ READ_CTFG_FROM_CACHE: bool = "TRUE".startswith(
     os.getenv("READ_CTFG_FROM_CACHE", "False").upper()
 )
 
+POST_DETAILS_TO_CTFG: bool = "TRUE".startswith(
+    os.getenv("POST_DETAILS_TO_CTFG", "False").upper()
+)
+
 
 @dataclass
 class airtable:
