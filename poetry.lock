@@ -1036,7 +1036,7 @@ files = [
 
 [[package]]
 name = "wikibaseintegrator"
-version = "0.12.14.dev0"
+version = "0.12.15.dev0"
 description = "Python package for reading from and writing to a Wikibase instance"
 optional = false
 python-versions = "^3.9"
@@ -1054,11 +1054,11 @@ ujson = "^5.10.0"
 
 [package.source]
 type = "git"
-url = "https://github.com/LeMyst/WikibaseIntegrator.git"
-reference = "301067883ddce0bca31fdd54973c3d6c8cbbcb7d"
-resolved_reference = "301067883ddce0bca31fdd54973c3d6c8cbbcb7d"
+url = "https://github.com/combinatorist/WikibaseIntegrator.git"
+reference = "feature/search_entities-exact-max_results"
+resolved_reference = "e6e48e9243b12854fa16e2c1c27590de320cf777"
 
 [metadata]
 lock-version = "2.1"
 python-versions = "<4.0,>=3.13"
-content-hash = "a38a28e15ca1b872d79b3c7d1b698c4b0826fb79d185dd98c1a10473aa584b4e"
+content-hash = "dd87a3ee33125d8face59db599ac939a15191468888423a725bd62c31f400312"
