@@ -274,17 +274,17 @@ def partition_matched(items: list[Listing]) -> tuple[list[Listing], list[Listing
 
 
 def upsert_matches(wiki_matches: dict[Listing, list[dict[str, Any]]]):
-    log("Updating CTFG with matching wikibase IDs...")
     with_wiki_items = {
         x: [WikidataItem.from_wiki_match(m) for m in matches]
         for x, matches in wiki_matches.items()
         if matches
     }
     wiki_items = list(set([x for y in with_wiki_items.values() for x in y]))
+    log(f"Updating CTFG with {len(wiki_items)} matching wikibase IDs...")
 
-    log("Example item")
-    # pprint(wiki_items[0].to_record())
-    # WikidataItem.recursive_save(wiki_items)
+    if wiki_items:
+        log("Example item")
+        pprint(wiki_items[0].to_record())
 
     for x, matches in with_wiki_items.items():
         x.wikidata_suggestions = matches
