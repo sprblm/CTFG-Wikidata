@@ -38,7 +38,7 @@ if WIKIDATA_BOT_USERNAME and WIKIDATA_BOT_PW:
 wbi = WikibaseIntegrator()
 
 def getEnvInt(name: str, default: int) -> int:
-    raw = os.getenv("WIKIDATA_MAX_RESULTS_PER_SEARCH")
+    raw = os.getenv(name)
     return int(raw) if raw else default
 
 WIKIDATA_MAX_LISTINGS_TO_SEARCH: int = getEnvInt("WIKIDATA_MAX_LISTINGS_TO_SEARCH", 5)
